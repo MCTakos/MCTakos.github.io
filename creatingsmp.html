@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CreatingSMP — Build. Automate. Discover.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --forge:    #0e0d0c;
+    --ash:      #1a1816;
+    --ember:    #2a2420;
+    --copper:   #b5651d;
+    --brass:    #c9a84c;
+    --gold:     #e8c96a;
+    --steam:    #e8e4dc;
+    --mist:     #b0a898;
+    --rust:     #8b2f2f;
+    --green:    #4a7c59;
+    --sky:      #4a7a9b;
+    --font-display: 'Cinzel', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; color-scheme: dark; }
+
+  body {
+    background: var(--forge);
+    color: var(--steam);
+    font-family: var(--font-body);
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(14,13,12,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding: 0 2rem;
+    display: flex; align-items: center; gap: 2rem;
+    height: 64px;
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--brass);
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 0.6rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .nav-logo .gear-icon { font-size: 1.3rem; display: inline-block; animation: spin 8s linear infinite; }
+
+  .nav-links {
+    display: flex; gap: 0.25rem; list-style: none; margin-left: auto;
+  }
+
+  .nav-links li a, .nav-links li button {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mist);
+    text-decoration: none;
+    background: none; border: none; cursor: pointer;
+    padding: 0.5rem 0.9rem;
+    border-radius: 4px;
+    transition: color 0.2s, background 0.2s;
+  }
+
+  .nav-links li a:hover, .nav-links li button:hover,
+  .nav-links li a.active, .nav-links li button.active {
+    color: var(--brass);
+    background: rgba(201,168,76,0.1);
+  }
+
+  /* ── PAGE SYSTEM ── */
+  .page { display: none; padding-top: 64px; min-height: 100vh; }
+  .page.active { display: block; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(181,101,29,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 30%, rgba(74,122,155,0.08) 0%, transparent 55%),
+      radial-gradient(ellipse at 50% 80%, rgba(74,124,89,0.06) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-gears {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+
+  .bg-gear {
+    position: absolute;
+    border-radius: 50%;
+    border: 3px solid;
+    opacity: 0.06;
+  }
+
+  .bg-gear::before {
+    content: '';
+    position: absolute; inset: -6px;
+    border-radius: 50%;
+    border: 2px dashed currentColor;
+    opacity: 0.5;
+  }
+
+  .bg-gear-1 { width: 320px; height: 320px; bottom: -80px; left: -100px; color: var(--brass); animation: spin 30s linear infinite; border-color: var(--brass); }
+  .bg-gear-2 { width: 220px; height: 220px; top: 5%; right: -60px; color: var(--copper); animation: spin-r 20s linear infinite; border-color: var(--copper); }
+  .bg-gear-3 { width: 160px; height: 160px; top: 40%; left: 5%; color: var(--brass); animation: spin 15s linear infinite; border-color: var(--brass); }
+
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    color: var(--copper);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.3em;
+    background: linear-gradient(135deg, var(--gold) 0%, var(--brass) 40%, var(--copper) 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-family: var(--font-display);
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    font-weight: 400;
+    color: var(--mist);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 2.5rem;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    font-size: 1.05rem;
+    color: var(--mist);
+    line-height: 1.8;
+    margin-bottom: 3rem;
+  }
+
+  .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--copper), var(--brass));
+    color: var(--forge);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.85rem 2rem;
+    border: none; border-radius: 4px; cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--brass);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.85rem 2rem;
+    border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 4px; cursor: pointer;
+    text-decoration: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--brass); background: rgba(201,168,76,0.08); }
+
+  /* ── DIVIDER ── */
+  .gear-divider {
+    display: flex; align-items: center; gap: 1.5rem;
+    padding: 3rem 2rem;
+    max-width: 900px; margin: 0 auto;
+  }
+
+  .gear-divider hr { flex: 1; border: none; border-top: 1px solid rgba(201,168,76,0.15); }
+
+  .gear-spin {
+    font-size: 1.6rem;
+    animation: spin 10s linear infinite;
+    color: var(--brass);
+    opacity: 0.5;
+  }
+
+  /* ── SECTIONS ── */
+  section { padding: 5rem 2rem; }
+
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    color: var(--copper);
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--steam);
+    line-height: 1.1;
+    margin-bottom: 1.2rem;
+  }
+
+  .section-body {
+    color: var(--mist);
+    max-width: 620px;
+    line-height: 1.85;
+  }
+
+  /* ── FEATURE CARDS ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .feature-card {
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 8px;
+    padding: 2rem;
+    transition: border-color 0.2s, transform 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(181,101,29,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .feature-card:hover { border-color: rgba(201,168,76,0.35); transform: translateY(-3px); }
+
+  .feature-icon { font-size: 2.2rem; margin-bottom: 1.2rem; }
+
+  .feature-card h3 {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--brass);
+    margin-bottom: 0.7rem;
+    letter-spacing: 0.03em;
+  }
+
+  .feature-card p { color: var(--mist); font-size: 0.92rem; line-height: 1.75; }
+
+  /* ── BIOME STRIP ── */
+  .biome-strip {
+    display: flex; gap: 0.75rem; overflow-x: auto; padding: 1rem 0;
+    scrollbar-width: none;
+  }
+  .biome-strip::-webkit-scrollbar { display: none; }
+
+  .biome-chip {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--ember);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 20px;
+    padding: 0.45rem 1rem;
+    white-space: nowrap;
+    font-size: 0.82rem;
+    color: var(--steam);
+    font-family: var(--font-mono);
+  }
+
+  .biome-chip .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── BIOME CATEGORY BROWSER ── */
+  .biome-categories {
+    display: flex; flex-direction: column; gap: 0.75rem;
+    margin-top: 2.5rem;
+  }
+
+  .biome-cat {
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.14);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .biome-cat-header {
+    display: flex; align-items: center; gap: 1rem;
+    width: 100%;
+    padding: 1.1rem 1.5rem;
+    background: none; border: none; cursor: pointer;
+    text-align: left;
+    color: var(--steam);
+    transition: background 0.15s;
+  }
+
+  .biome-cat-header:hover { background: rgba(201,168,76,0.05); }
+
+  .biome-cat-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .biome-cat-name {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--brass);
+    flex: 1;
+  }
+
+  .biome-cat-count {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--mist);
+    background: var(--ember);
+    padding: 0.2rem 0.6rem;
+    border-radius: 10px;
+  }
+
+  .biome-cat-arrow {
+    font-size: 0.8rem;
+    color: var(--mist);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+
+  .biome-cat.open .biome-cat-arrow { transform: rotate(90deg); }
+
+  .biome-cat-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .biome-cat.open .biome-cat-body { max-height: 600px; overflow-y: auto; }
+
+  .biome-tag-list {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    padding: 0 1.5rem 1.4rem;
+  }
+
+  .biome-tag {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--mist);
+    background: var(--ember);
+    border: 1px solid rgba(201,168,76,0.1);
+    padding: 0.35rem 0.8rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .biome-total-note {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--copper);
+    margin-top: 1.2rem;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── STAT ROW ── */
+  .stat-row {
+    display: flex; gap: 3rem; flex-wrap: wrap;
+    padding: 3rem;
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 8px;
+    margin-top: 4rem;
+  }
+
+  .stat-item { flex: 1; min-width: 120px; }
+
+  .stat-num {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--brass);
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mist);
+    margin-top: 0.25rem;
+  }
+
+  /* ── ABOUT PAGE ── */
+  .about-layout {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 5rem;
+    align-items: start;
+    padding: 6rem 2rem;
+    max-width: 1100px; margin: 0 auto;
+  }
+
+  .about-card {
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 10px;
+    padding: 2.5rem;
+    position: sticky; top: 90px;
+    text-align: center;
+  }
+
+  .avatar-ring {
+    width: 130px; height: 130px;
+    margin: 0 auto 1.5rem;
+    border-radius: 50%;
+    border: 2px solid var(--brass);
+    box-shadow: 0 0 0 6px rgba(201,168,76,0.1), 0 0 30px rgba(181,101,29,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 4rem;
+    background: var(--ember);
+  }
+
+  .about-name {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 0.4rem;
+  }
+
+  .about-role {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--copper);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .about-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.8rem; }
+
+  .tag {
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
+    color: var(--mist);
+    background: var(--ember);
+    border: 1px solid rgba(201,168,76,0.15);
+    padding: 0.25rem 0.7rem;
+    border-radius: 3px;
+  }
+
+  .yt-btn {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: #ff0000;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    padding: 0.75rem 1.5rem;
+    border-radius: 5px;
+    text-decoration: none;
+    border: none; cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .yt-btn:hover { background: #cc0000; transform: translateY(-1px); }
+
+  .yt-btn svg { width: 20px; height: 20px; fill: #fff; }
+
+  .about-content h2 {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--steam);
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .about-content h2:first-child { margin-top: 0; }
+
+  .about-content p {
+    color: var(--mist);
+    line-height: 1.85;
+    margin-bottom: 1.2rem;
+    font-size: 0.98rem;
+  }
+
+  .timeline { margin-top: 2rem; }
+
+  .timeline-item {
+    display: flex; gap: 1.5rem;
+    padding-bottom: 2rem;
+    position: relative;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 11px; top: 28px; bottom: 0;
+    width: 1px;
+    background: rgba(201,168,76,0.15);
+  }
+
+  .timeline-item:last-child::before { display: none; }
+
+  .tl-dot {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: var(--ember);
+    border: 2px solid var(--brass);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .tl-content h4 {
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    color: var(--brass);
+    margin-bottom: 0.3rem;
+  }
+
+  .tl-content p { color: var(--mist); font-size: 0.88rem; line-height: 1.7; }
+
+  /* ── GAME PAGE ── */
+  .game-page { padding: 5rem 2rem; }
+
+  .game-container { max-width: 800px; margin: 0 auto; }
+
+  .game-header { text-align: center; margin-bottom: 3rem; }
+
+  .game-tabs {
+    display: flex; gap: 0.5rem; justify-content: center;
+    margin-bottom: 2.5rem;
+    background: var(--ash);
+    padding: 0.4rem;
+    border-radius: 8px;
+    width: fit-content;
+    margin-left: auto; margin-right: auto;
+  }
+
+  .game-tab {
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    padding: 0.6rem 1.4rem;
+    border: none; border-radius: 5px;
+    cursor: pointer;
+    background: transparent;
+    color: var(--mist);
+    transition: all 0.2s;
+  }
+
+  .game-tab.active { background: var(--ember); color: var(--brass); }
+
+  /* QUIZ */
+  .quiz-box {
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    padding: 2.5rem;
+  }
+
+  .quiz-progress {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+  }
+
+  .quiz-progress-bar {
+    flex: 1; height: 3px; background: var(--ember); border-radius: 3px; overflow: hidden;
+  }
+
+  .quiz-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--copper), var(--brass));
+    border-radius: 3px;
+    transition: width 0.4s;
+  }
+
+  .quiz-progress-text {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--mist);
+    white-space: nowrap;
+  }
+
+  .quiz-q {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--steam);
+    margin-bottom: 1.8rem;
+    line-height: 1.4;
+  }
+
+  .quiz-options { display: grid; gap: 0.75rem; }
+
+  .quiz-option {
+    background: var(--ember);
+    border: 1px solid rgba(201,168,76,0.12);
+    border-radius: 6px;
+    padding: 1rem 1.3rem;
+    color: var(--steam);
+    font-size: 0.92rem;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+    width: 100%;
+  }
+
+  .quiz-option:hover:not(:disabled) { border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.06); }
+  .quiz-option.correct { border-color: #4a7c59; background: rgba(74,124,89,0.15); color: #7ecb9a; }
+  .quiz-option.wrong { border-color: var(--rust); background: rgba(139,47,47,0.15); color: #e07070; }
+
+  .quiz-feedback {
+    margin-top: 1.2rem;
+    padding: 1rem 1.3rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: none;
+  }
+
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.correct { background: rgba(74,124,89,0.15); border: 1px solid rgba(74,124,89,0.3); color: #7ecb9a; }
+  .quiz-feedback.wrong { background: rgba(139,47,47,0.15); border: 1px solid rgba(139,47,47,0.3); color: #e07070; }
+
+  .quiz-next {
+    margin-top: 1.5rem;
+    display: none;
+  }
+  .quiz-next.show { display: block; }
+
+  /* WORD SORT */
+  .wordsort-box {
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.15);
+    border-radius: 10px;
+    padding: 2.5rem;
+  }
+
+  .wordsort-intro {
+    color: var(--mist);
+    font-size: 0.9rem;
+    margin-bottom: 1.8rem;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  .wordsort-score-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: var(--mist);
+  }
+
+  .score-val { color: var(--brass); font-size: 1rem; }
+
+  .target-display {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .target-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--copper);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .target-word {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .target-hint { color: var(--mist); font-size: 0.85rem; }
+
+  .drop-zone {
+    min-height: 70px;
+    border: 2px dashed rgba(201,168,76,0.25);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    background: var(--ember);
+    transition: border-color 0.2s;
+  }
+
+  .drop-zone.drag-over { border-color: var(--brass); }
+  .drop-zone.empty::before { content: 'Drop parts here to build the word'; color: rgba(176,168,152,0.4); font-size: 0.85rem; }
+
+  .parts-pool {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 60px;
+    padding: 1rem;
+    background: rgba(42,36,32,0.5);
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .word-part {
+    background: var(--ember);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 5px;
+    padding: 0.45rem 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    color: var(--brass);
+    cursor: grab;
+    user-select: none;
+    transition: background 0.15s, transform 0.15s;
+  }
+
+  .word-part:hover { background: rgba(201,168,76,0.12); transform: translateY(-2px); }
+  .word-part:active { cursor: grabbing; }
+  .word-part.in-drop { background: rgba(74,124,89,0.15); border-color: rgba(74,124,89,0.4); color: #7ecb9a; }
+
+  .wordsort-actions { display: flex; gap: 0.75rem; }
+
+  .wordsort-result {
+    margin-top: 1rem;
+    padding: 0.8rem 1.2rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    display: none;
+  }
+
+  .wordsort-result.show { display: block; }
+  .wordsort-result.correct { background: rgba(74,124,89,0.15); border: 1px solid rgba(74,124,89,0.3); color: #7ecb9a; }
+  .wordsort-result.wrong { background: rgba(139,47,47,0.15); border: 1px solid rgba(139,47,47,0.3); color: #e07070; }
+
+  .locked-msg {
+    text-align: center; padding: 3rem 2rem;
+    background: var(--ash); border-radius: 10px;
+    border: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .locked-msg .lock-icon { font-size: 3rem; margin-bottom: 1rem; }
+  .locked-msg h3 { font-family: var(--font-display); color: var(--brass); margin-bottom: 0.8rem; font-size: 1.3rem; }
+  .locked-msg p { color: var(--mist); font-size: 0.9rem; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin-r { to { transform: rotate(-360deg); } }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-up { animation: fadeUp 0.6s ease both; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.35s; }
+  .delay-4 { animation-delay: 0.5s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .about-layout { grid-template-columns: 1fr; gap: 3rem; }
+    .about-card { position: static; }
+    .stat-row { gap: 2rem; }
+    nav { padding: 0 1rem; gap: 1rem; }
+    .nav-links li a, .nav-links li button { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+  }
+
+  @media (max-width: 500px) {
+    .hero-ctas { flex-direction: column; align-items: center; }
+    .btn-primary, .btn-ghost { width: 100%; text-align: center; }
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(201,168,76,0.1);
+    padding: 2rem;
+    text-align: center;
+    font-size: 0.8rem;
+    color: rgba(176,168,152,0.5);
+    font-family: var(--font-mono);
+  }
+
+  footer span { color: var(--copper); }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">
+    <span class="gear-icon">⚙</span> CreatingSMP
+  </div>
+  <ul class="nav-links">
+    <li><button onclick="showPage('home')" id="tab-home" class="active">Home</button></li>
+    <li><button onclick="showPage('about')" id="tab-about">Founder</button></li>
+    <li><button onclick="showPage('game')" id="tab-game">Game</button></li>
+  </ul>
+</nav>
+
+<!-- ══════════ HOME PAGE ══════════ -->
+<div class="page active" id="page-home">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-gears">
+      <div class="bg-gear bg-gear-1"></div>
+      <div class="bg-gear bg-gear-2"></div>
+      <div class="bg-gear bg-gear-3"></div>
+    </div>
+    <p class="hero-eyebrow fade-up">⚙ A Minecraft Create Mod Server</p>
+    <h1 class="fade-up delay-1">Creating<br>SMP</h1>
+    <p class="hero-sub fade-up delay-2">Build. Automate. Discover.</p>
+    <p class="hero-desc fade-up delay-3">A living world where machines run by steam and brass, contraptions defy gravity, and creativity has no ceiling. Powered by Create and a curated stack of add-ons.</p>
+    <div class="hero-ctas fade-up delay-4">
+      <button class="btn-primary" onclick="showPage('game')">⚙ Play the Game</button>
+      <button class="btn-ghost" onclick="showPage('about')">Meet the Founder</button>
+    </div>
+  </section>
+
+  <!-- What Is It -->
+  <section>
+    <div class="container">
+      <p class="section-label">What We're About</p>
+      <h2 class="section-title">Contraptions That Actually Work</h2>
+      <p class="section-body">CreatingSMP is built on the Create mod — a mechanical engineering sandbox that turns Minecraft into a world of rotating shafts, conveyor belts, windmill-powered factories, and elaborate automated farms. Every machine you see was built by a real player. Nothing is spawned in.</p>
+      <div class="feature-grid" style="margin-top:3rem;">
+        <div class="feature-card">
+          <div class="feature-icon">⚙️</div>
+          <h3>Create Mod Core</h3>
+          <p>Mechanical power, rotation networks, fluid transport, and everything in between. If you can imagine it, you can build it with shafts and cogwheels.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔫</div>
+          <h3>Weapon Systems</h3>
+          <p>A dedicated add-on brings a full arsenal to the server — firearms, ranged gadgets, and tactical gear. Exploration has teeth here.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <h3>Giant Modded World</h3>
+          <p>Explore a massive worldgen overhaul with 100+ new biomes — from Crystal Caves to Volcanic Peaks, Skylands, and Redwood Woods.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧩</div>
+          <h3>Curated Add-Ons</h3>
+          <p>Carefully selected Create add-ons extend the factory floor. Trains, contraption weapons, steam engines, and more all slot seamlessly into the base experience.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🤝</div>
+          <h3>Collaborative SMP</h3>
+          <p>An SMP means real players, real builds, real economies. Trade resources, collaborate on megaprojects, or compete to build the most efficient factory.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">✨</div>
+          <h3>Creativity First</h3>
+          <p>There's no prescribed path. Want to build an automated brewery? A flying airship? A fully mechanical sorting system? This server hands you the tools.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gear divider -->
+  <div class="gear-divider container">
+    <hr><span class="gear-spin">⚙</span><hr>
+  </div>
+
+  <!-- Biomes -->
+  <section>
+    <div class="container">
+      <p class="section-label">World Generation</p>
+      <h2 class="section-title">A World Worth Exploring</h2>
+      <p class="section-body">The overworld has been rebuilt from the ground up. These aren't vanilla biomes with a palette swap — every category below is a different flavor of terrain, from volcanic peaks to floating skylands to caverns deep underground.</p>
+
+      <div class="biome-categories" id="biome-categories">
+        <!-- Injected by JS from BIOME_DATA -->
+      </div>
+
+      <p class="biome-total-note" id="biome-total-note"></p>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section>
+    <div class="container">
+      <div class="stat-row">
+        <div class="stat-item">
+          <div class="stat-num">30+</div>
+          <div class="stat-label">Create Add-Ons</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">World Size</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">100+</div>
+          <div class="stat-label">New Biomes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">1</div>
+          <div class="stat-label">Rule: Create</div>
+          <div class="stat-label" style="margin-top:0.4rem;color:var(--copper);">Rule 2: Don't hack lol</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>CreatingSMP</span> · Powered by Create Mod · Minecraft Java Edition
+  </footer>
+</div>
+
+<!-- ══════════ ABOUT PAGE ══════════ -->
+<div class="page" id="page-about">
+  <div class="about-layout">
+    <!-- Card -->
+    <aside>
+      <div class="about-card">
+        <div class="avatar-ring" onclick="sayHi(this)" style="cursor:pointer;" title="Click me">🎮</div>
+        <div class="about-name">Tako</div>
+        <div class="about-role">Founder · Developer · Creator · He/Him</div>
+        <div class="about-tags">
+          <span class="tag">Minecraft</span>
+          <span class="tag">YouTube</span>
+          <span class="tag">Create Mod</span>
+          <span class="tag">California</span>
+          <span class="tag">Modding</span>
+        </div>
+        <a href="https://youtube.com/@TakoStreamYT" target="_blank" class="yt-btn">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg>
+          TakoStreamYT
+        </a>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <div class="about-content">
+      <p class="section-label">The Founder</p>
+      <h2 class="section-title" style="margin-bottom:1.5rem;">The Person Behind the Gears</h2>
+      <p>Tako is the founder and developer behind CreatingSMP — a California-based creator, modder, and developer who's been building things in Minecraft long before contraptions were cool. The server isn't just a hobby project; it's a carefully crafted world built on years of technical experience (and an unhealthy number of hours spent staring at gear ratios).</p>
+      <p>When he isn't managing the server, you'll find him building mods, publishing Minecraft info content on <strong style="color:var(--brass)">TakoStreamYT</strong>, developing flight simulator aircraft add-ons, or doing something involving gear ratios and way too many cogwheels.</p>
+
+      <h2>What Drives CreatingSMP</h2>
+      <p>The idea behind the server is simple: give players the tools to be genuinely creative, then get out of the way. No linear quest lines, no hand-holding, no prescribed goal. Just a massive world, a powerful modpack, and the freedom to build whatever you can imagine.</p>
+      <p>Tako obsesses over the details — the choice of add-ons, the biome generation, the balance between exploration and automation. Everything on the server is intentional. Except for the lag spikes. Those are just contraptions being contraptions.</p>
+
+      <h2>Journey</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <h4>YouTube Channel — TakoStreamYT</h4>
+            <p>Launched a YouTube channel covering general Minecraft info and content, building a community of viewers who keep up with the game long before CreatingSMP existed.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <h4>3vb0 — Parkour & Civilization Server</h4>
+            <p>Played and built on 3vb0, a parkour and civilization-style server, picking up early lessons in server communities and collaborative building long before CreatingSMP existed.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <h4>First Minecraft Mods</h4>
+            <p>Started modding Minecraft with Forge, writing custom blocks, items, and eventually full systems with thousands of lines of Java.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <h4>Discovered Create Mod</h4>
+            <p>Found the Create mod and immediately knew it was the foundation for something special — a server built entirely around mechanical ingenuity.</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <h4>CreatingSMP Launched</h4>
+            <p>Launched CreatingSMP with a hand-curated modpack, a giant custom world, and a community-first vision. The gears have been turning ever since.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:2.5rem;padding:2rem;background:var(--ash);border:1px solid rgba(201,168,76,0.15);border-radius:8px;">
+        <p class="section-label" style="margin-bottom:0.75rem;">Watch on YouTube</p>
+        <p style="color:var(--mist);font-size:0.92rem;margin-bottom:1.2rem;">Tutorials, server highlights, Minecraft content, and more — all on Tako's YouTube channel.</p>
+        <a href="https://youtube.com/@TakoStreamYT" target="_blank" class="btn-primary" style="display:inline-block;text-decoration:none;">▶ Visit TakoStreamYT</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ GAME PAGE ══════════ -->
+<div class="page" id="page-game">
+  <div class="game-page">
+    <div class="game-container">
+      <div class="game-header">
+        <p class="section-label">Interactive Challenge</p>
+        <h2 class="section-title">CreatingSMP Game Zone</h2>
+        <p style="color:var(--mist);font-size:0.92rem;">Test your Create Mod knowledge, then unlock the word puzzle!</p>
+      </div>
+
+      <div class="game-tabs">
+        <button class="game-tab active" id="gtab-quiz" onclick="switchGameTab('quiz')">⚙ Quiz</button>
+        <button class="game-tab" id="gtab-wordsort" onclick="switchGameTab('wordsort')">🔡 Word Sort</button>
+      </div>
+
+      <!-- QUIZ PANEL -->
+      <div id="game-quiz">
+        <div class="quiz-box">
+          <div class="quiz-progress">
+            <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="qprogress" style="width:0%"></div></div>
+            <div class="quiz-progress-text" id="qprogress-text">0 / 8</div>
+          </div>
+          <div id="quiz-area">
+            <!-- Injected by JS -->
+          </div>
+          <div class="quiz-feedback" id="quiz-feedback"></div>
+          <div class="quiz-next" id="quiz-next">
+            <button class="btn-primary" onclick="nextQuestion()" id="quiz-next-btn">Next Question →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORD SORT PANEL -->
+      <div id="game-wordsort" style="display:none;">
+        <div id="wordsort-locked" class="locked-msg" style="display:none;">
+          <div class="lock-icon">🔒</div>
+          <h3>Word Sort Locked</h3>
+          <p>Complete the quiz first to unlock the Word Sort challenge! You need to answer at least <strong style="color:var(--brass)">6 out of 8</strong> questions correctly. No, you can't just press the cogwheel and hope.</p>
+        </div>
+        <div id="wordsort-game" class="wordsort-box" style="display:none;">
+          <p class="wordsort-intro">Drag the word parts into the drop zone to spell the Create Mod term shown below. Order them correctly!</p>
+          <div class="wordsort-score-bar">
+            <span>Score: <span class="score-val" id="ws-score">0</span></span>
+            <span>Round <span id="ws-round">1</span> / <span id="ws-total">12</span></span>
+          </div>
+          <div class="target-display">
+            <div class="target-label">Build this word</div>
+            <div class="target-word" id="ws-target"></div>
+            <div class="target-hint" id="ws-hint"></div>
+          </div>
+          <div class="drop-zone" id="ws-dropzone"></div>
+          <div class="parts-pool" id="ws-pool"></div>
+          <div class="wordsort-actions">
+            <button class="btn-primary" onclick="checkWordSort()">✓ Check Answer</button>
+            <button class="btn-ghost" onclick="clearDropZone()">✕ Clear</button>
+          </div>
+          <div class="wordsort-result" id="ws-result"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ── BIOME DATA ──
+const BIOME_DATA = [
+  {
+    name: "Mountains & Volcanic Peaks",
+    color: "#9b6b4a",
+    biomes: ["Alpine Highlands","Badlands Ridge","Basalt Cliffs","Caldera","Emerald Peaks","Frozen Cliffs","Haze Mountain","Jagged Peaks","Jungle Mountains","Rocky Mountain","Scarlet Mountains","Sikyatki Valley","Snowy Badlands","Stony Spires","Strike Ridge","Volcanic Crater","Volcanic Peaks","Yosemite Cliffs"]
+  },
+  {
+    name: "Highlands & Plateaus",
+    color: "#c9a84c",
+    biomes: ["Alpine Grove","Arid Highlands","Blooming Plateau","Cold Shrubland","Desert Canyon","Forested Highlands","Gilded Savanna","Highlands","Hot Shrubland","Mammoth Savanna","Painted Plateau","Red Oasis","Rocky Shrubland","Savannah Badlands","Shield","Shrubland","Snowy Shield","Steppe","Temperate Highlands","Warped Mesa","White Mesa","Windswept Spires","Wooded Highlands","Yellowstone","Yosemite Lowlands"]
+  },
+  {
+    name: "Valleys & Valerian Lowlands",
+    color: "#8a4a6a",
+    biomes: ["Amethyst Canyon","Aspen Valley","Autumnal Valley","Birch Valley","Blooming Valley","Dark Valley","Frostbitten Valley","Frozen Valley","Lavender Valley","Moonlight Valley","Orchid Valley","Sakura Valley","Snowy Maple Valley","Taiga Valley","Weeping Valley"]
+  },
+  {
+    name: "Forests & Groves",
+    color: "#4a7c59",
+    biomes: ["Amethyst Rainforest","Ashen Savanna","Birch Taiga","Cold Aspen Forest","Cypress Forest","Green Peaks","Jarrrah Forest","Lavender Forest","Mirage Isles","Moonlight Grove","Mossy Forest","Pine Forest","Redwood Woods","Sakura Grove","Siberian Grove","Snowy Maple Forest","Tropical Rainforest","Wintry Forest"]
+  },
+  {
+    name: "Plains & Meadows",
+    color: "#6a8a4a",
+    biomes: ["Highland Meadow","Ice Marsh","Meadow","Mixed Plains","Orchid Swamp","Puszta","Rich Grasslands","Savanna Slopes","Siberian Lowlands","Wintry Lowlands"]
+  },
+  {
+    name: "Deserts & Dunes",
+    color: "#b5651d",
+    biomes: ["Ancient Sands","Desert Oasis","Gravel Desert","Red Desert Dunes","Sandstone Valley"]
+  },
+  {
+    name: "Islands",
+    color: "#4a7a9b",
+    biomes: ["Alpha Islands","Alpha Islands Winter"]
+  },
+  {
+    name: "Skylands (Floating Islands)",
+    color: "#6a5c8a",
+    biomes: ["Skylands Autumn","Skylands Spring","Skylands Summer","Skylands Winter"]
+  },
+  {
+    name: "Cave Biomes (Underground)",
+    color: "#4a6b7a",
+    biomes: ["Crystal Caves","Diorite Caves","Frostfire Caves","Granitic Caves","Ice Caves","Infested Caves","Mantle Caves","Obsidian Chasm","Sandstone Caves","Thermal Caves","Tuff Caves","Underground Jungle"]
+  }
+];
+
+function renderBiomes() {
+  const wrap = document.getElementById('biome-categories');
+  if (!wrap) return;
+  let total = 0;
+  wrap.innerHTML = BIOME_DATA.map((cat, i) => {
+    total += cat.biomes.length;
+    return `
+    <div class="biome-cat" id="biome-cat-${i}">
+      <button class="biome-cat-header" onclick="toggleBiomeCat(${i})">
+        <span class="biome-cat-dot" style="background:${cat.color}"></span>
+        <span class="biome-cat-name">${cat.name}</span>
+        <span class="biome-cat-count">${cat.biomes.length}</span>
+        <span class="biome-cat-arrow">▶</span>
+      </button>
+      <div class="biome-cat-body">
+        <div class="biome-tag-list">
+          ${cat.biomes.map(b => `<span class="biome-tag">${b}</span>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  const note = document.getElementById('biome-total-note');
+  if (note) note.textContent = '⚙ ' + total + '+ biomes generated across ' + BIOME_DATA.length + ' categories — and counting.';
+}
+
+function toggleBiomeCat(i) {
+  const el = document.getElementById('biome-cat-' + i);
+  el.classList.toggle('open');
+}
+
+// ── LITTLE EASTER EGG ──
+function sayHi(el) {
+  const original = el.textContent;
+  el.textContent = '👋';
+  el.title = 'Hi!';
+  setTimeout(() => { el.textContent = original; }, 900);
+}
+
+document.addEventListener('DOMContentLoaded', renderBiomes);
+
+// ── PAGE NAVIGATION ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-links button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  window.scrollTo(0, 0);
+
+  if (id === 'game') initGame();
+}
+
+// ── QUIZ DATA ──
+const ALL_QUESTIONS = [
+  {
+    q: "What is the primary power source for Create Mod machines?",
+    options: ["Redstone Flux (RF)", "Rotational Force (from shafts & cogwheels)", "EU (Industrial Craft)", "Magic from altars"],
+    answer: 1,
+    explain: "Create uses Rotational Force — measured in Stress Units (SU) and Speed (RPM) — transmitted through shafts, cogwheels, and belts."
+  },
+  {
+    q: "Which Create Mod block is used to generate rotational power from wind?",
+    options: ["Furnace Engine", "Windmill Bearing", "Water Wheel", "Blaze Burner"],
+    answer: 1,
+    explain: "The Windmill Bearing spins sails attached to it, converting wind into rotation. The more sails, the more power!"
+  },
+  {
+    q: "What does the 'Mechanical Press' do in Create?",
+    options: ["Crushes ores into dust", "Presses items into sheets or applies pressure crafting", "Launches projectiles", "Generates redstone pulses"],
+    answer: 1,
+    explain: "The Mechanical Press presses items to create metal sheets, applies bulk crafting recipes, and more when powered."
+  },
+  {
+    q: "In CreatingSMP, what type of weapon system has been added?",
+    options: ["Magic wands only", "Bows and crossbows only", "Firearms, ranged gadgets, and tactical gear", "Lightsabers"],
+    answer: 2,
+    explain: "CreatingSMP features a dedicated weapon add-on with guns, ranged gadgets, and tactical equipment — making exploration dangerous!"
+  },
+  {
+    q: "What is 'Stress' in the Create Mod?",
+    options: ["A debuff on the player", "The amount of rotational power consumed by machines", "The durability of cogwheels", "Lag caused by contraptions"],
+    answer: 1,
+    explain: "Stress is Create's power budget system. Every machine consumes Stress Units; your power source has a Stress Capacity that must not be exceeded."
+  },
+  {
+    q: "Which of these is a Create Mod structure used for bulk item processing?",
+    options: ["The Blast Furnace", "The Deployer", "The Mechanical Mixer", "The Cauldron"],
+    answer: 2,
+    explain: "The Mechanical Mixer stirs items in a basin for bulk recipes — essential for crafting and processing large amounts of materials."
+  },
+  {
+    q: "How is rotational speed changed in Create?",
+    options: ["By adding more power sources", "Using Large and Small Cogwheels (gear ratio)", "Upgrading the shaft tier", "Sleeping in a bed"],
+    answer: 1,
+    explain: "Connecting a large cogwheel to a small one changes the speed — larger to smaller speeds up, smaller to larger slows down. Gear ratios are fundamental!"
+  },
+  {
+    q: "What best describes the worldgen in CreatingSMP?",
+    options: ["Vanilla Minecraft biomes only", "A giant world with dozens of completely new biomes", "A flat creative world", "A pre-built city map"],
+    answer: 1,
+    explain: "CreatingSMP uses a massive worldgen overhaul with 100+ biomes — Crystal Caves, Volcanic Peaks, Skylands, and much more await exploration."
+  },
+  {
+    q: "What does the Create Mod 'Deployer' do?",
+    options: ["Drops TNT", "Mimics a player's right-click or hit action", "Deploys a parachute", "Summons mobs"],
+    answer: 1,
+    explain: "A Deployer holds an item and mimics right-clicking or attacking when powered — perfect for automated crafting or farming."
+  },
+  {
+    q: "What does the Mechanical Saw do when facing upward in Create?",
+    options: ["Chops down trees automatically", "Cuts stone into bricks", "Harvests crops", "Mines blocks below it"],
+    answer: 0,
+    explain: "An upward-facing Mechanical Saw will fell entire trees automatically when powered — a Create classic for tree farms."
+  },
+  {
+    q: "What block lets you record and replay a sequence of contraption movements?",
+    options: ["Clock", "Sequenced Gearshift", "Redstone Repeater", "Observer Block"],
+    answer: 1,
+    explain: "The Sequenced Gearshift lets you program a series of timed rotational instructions — turn, wait, repeat — perfect for complex automation."
+  },
+  {
+    q: "Which Create component is used to transport items between machines?",
+    options: ["Hopper Minecart", "Belts (Mechanical Belt)", "Ender Chest", "Item Frame"],
+    answer: 1,
+    explain: "Mechanical Belts run between shafts and move items along their length, forming the backbone of most Create factories."
+  },
+  {
+    q: "What is a 'Contraption' in Create terminology?",
+    options: ["Any crafting recipe", "A moving assembly of blocks built on a mechanical component", "A type of biome", "A weapon mod item"],
+    answer: 1,
+    explain: "A Contraption is a collection of blocks that move together — built using Mechanical Bearings, Pistons, Mounted layouts, or Trains."
+  },
+  {
+    q: "What does the Schematic and Quill (or Printer) let you do?",
+    options: ["Teleport instantly", "Copy a structure into a portable schematic for rebuilding", "Trade with villagers", "Enchant tools"],
+    answer: 1,
+    explain: "Schematics let you capture a build and place a hologram preview elsewhere, then use a Deployer-based Printer to construct it block by block."
+  },
+  {
+    q: "What fuels a Blaze Burner in Create when set to 'Super Heated'?",
+    options: ["A regular Blaze", "A Blaze Cake (fed to the captured Blaze)", "Lava buckets", "Coal blocks"],
+    answer: 1,
+    explain: "Feeding a captive Blaze a Blaze Cake upgrades it to Super Heated status, boosting processing speed for things like the Mechanical Mixer."
+  },
+  {
+    q: "What's the purpose of a Water Wheel in Create?",
+    options: ["Generates rotational power from flowing water", "Purifies water for brewing", "Creates infinite water sources", "Powers furnaces directly"],
+    answer: 0,
+    explain: "A Water Wheel spins when water flows past it, generating consistent rotational power — one of the earliest power sources you can build."
+  },
+  {
+    q: "How do Create's Trains primarily navigate the world?",
+    options: ["Flying through the air freely", "Following placed Track with Stations and Signals", "Teleporting between portals", "Swimming through water"],
+    answer: 1,
+    explain: "Create's train system uses physical Track, Stations for stops, and Signals for traffic control — a full transportation network you build yourself."
+  },
+  {
+    q: "What does increasing RPM on a system generally affect?",
+    options: ["Block hardness", "Processing speed of connected machines", "Player movement speed", "Mob spawn rates"],
+    answer: 1,
+    explain: "Higher RPM (rotation speed) makes most Create machines process faster, though some machines have RPM caps or behave differently above certain speeds."
+  },
+  {
+    q: "What's a key reason CreatingSMP avoids spawning in builds?",
+    options: ["Spawned builds lag the server", "It removes survival difficulty", "Every machine is meant to be built by a real player", "Spawning isn't possible in Create"],
+    answer: 2,
+    explain: "CreatingSMP's philosophy is that creativity and effort matter — every contraption you see in the world was actually built by a player."
+  },
+  {
+    q: "What does a Mechanical Pump do in a Create fluid network?",
+    options: ["Pumps fluids through pipes over a distance", "Cools lava into obsidian instantly", "Generates fluids from nothing", "Removes water from chunks"],
+    answer: 0,
+    explain: "Mechanical Pumps push fluids through Fluid Pipes over long distances, letting you build large-scale fluid logistics networks."
+  },
+  {
+    q: "Roughly how many Create add-ons does CreatingSMP run?",
+    options: ["Around 5", "Around 30+", "Exactly 1", "Over 500"],
+    answer: 1,
+    explain: "CreatingSMP runs a curated stack of 30+ Create add-ons, expanding the base mod with trains, weapons, steam engines, and more."
+  }
+];
+
+let QUESTIONS = [];
+const QUIZ_LENGTH = 8;
+
+function pickRandomQuestions() {
+  const shuffled = shuffleArray(ALL_QUESTIONS);
+  QUESTIONS = shuffled.slice(0, Math.min(QUIZ_LENGTH, shuffled.length)).map(q => {
+    // also shuffle the answer options so the correct answer isn't always in the same slot
+    const optionIndices = shuffleArray(q.options.map((_, i) => i));
+    const newOptions = optionIndices.map(i => q.options[i]);
+    const newAnswer = optionIndices.indexOf(q.answer);
+    return { q: q.q, options: newOptions, answer: newAnswer, explain: q.explain };
+  });
+}
+
+let currentQ = 0;
+let score = 0;
+let answered = false;
+let quizComplete = false;
+
+function initGame() {
+  if (currentQ === 0 && !quizComplete && QUESTIONS.length === 0) {
+    pickRandomQuestions();
+    renderQuestion();
+  }
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const pct = (currentQ / QUESTIONS.length) * 100;
+  document.getElementById('qprogress').style.width = pct + '%';
+  document.getElementById('qprogress-text').textContent = currentQ + ' / ' + QUESTIONS.length;
+
+  const area = document.getElementById('quiz-area');
+  area.innerHTML = `
+    <p class="quiz-q">${q.q}</p>
+    <div class="quiz-options">
+      ${q.options.map((o, i) => `<button class="quiz-option" onclick="answerQuestion(${i})">${o}</button>`).join('')}
+    </div>
+  `;
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  document.getElementById('quiz-feedback').textContent = '';
+  document.getElementById('quiz-next').className = 'quiz-next';
+  answered = false;
+}
+
+function answerQuestion(idx) {
+  if (answered) return;
+  answered = true;
+  const q = QUESTIONS[currentQ];
+  const btns = document.querySelectorAll('.quiz-option');
+  btns.forEach(b => b.disabled = true);
+  btns[idx].classList.add(idx === q.answer ? 'correct' : 'wrong');
+  btns[q.answer].classList.add('correct');
+
+  const fb = document.getElementById('quiz-feedback');
+  if (idx === q.answer) {
+    score++;
+    fb.className = 'quiz-feedback correct show';
+    fb.textContent = '✓ Correct! ' + q.explain;
+  } else {
+    fb.className = 'quiz-feedback wrong show';
+    fb.textContent = '✗ Not quite. ' + q.explain;
+  }
+
+  const nextBtn = document.getElementById('quiz-next');
+  nextBtn.className = 'quiz-next show';
+  if (currentQ === QUESTIONS.length - 1) {
+    document.getElementById('quiz-next-btn').textContent = 'See Results →';
+  }
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= QUESTIONS.length) {
+    showQuizResult();
+    return;
+  }
+  renderQuestion();
+}
+
+function showQuizResult() {
+  quizComplete = true;
+  const area = document.getElementById('quiz-area');
+  const pass = score >= 6;
+  area.innerHTML = `
+    <div style="text-align:center;padding:1rem 0;">
+      <div style="font-size:3rem;margin-bottom:1rem;">${pass ? '🏆' : '⚙'}</div>
+      <div style="font-family:var(--font-display);font-size:1.8rem;color:var(--gold);margin-bottom:0.5rem;">${score} / ${QUESTIONS.length}</div>
+      <div style="color:${pass ? '#7ecb9a' : 'var(--copper)'};font-size:0.95rem;margin-bottom:1.5rem;">${pass ? '✓ You passed! Word Sort is now unlocked.' : 'You need 6+ correct to unlock Word Sort. Try again!'}</div>
+      ${pass ? '<p style="color:var(--mist);font-size:0.88rem;">Switch to the Word Sort tab to continue your challenge!</p>' : '<button class="btn-primary" onclick="resetQuiz()">Try Again</button>'}
+    </div>
+  `;
+  document.getElementById('quiz-feedback').className = 'quiz-feedback';
+  document.getElementById('quiz-next').className = 'quiz-next';
+  document.getElementById('qprogress').style.width = '100%';
+  document.getElementById('qprogress-text').textContent = QUESTIONS.length + ' / ' + QUESTIONS.length;
+}
+
+function resetQuiz() {
+  currentQ = 0; score = 0; answered = false; quizComplete = false;
+  pickRandomQuestions();
+  renderQuestion();
+}
+
+// ── WORD SORT ──
+const ALL_WS_WORDS = [
+  { word: "COGWHEEL", hint: "Transfers rotational force between shafts", parts: ["COG","WHE","EL"] },
+  { word: "CONTRAPTION", hint: "A moving Create structure built on a chassis", parts: ["CON","TRA","PTION"] },
+  { word: "DEPLOYER", hint: "Mechanical arm that can right-click or place blocks", parts: ["DE","PLOY","ER"] },
+  { word: "SEQUENCER", hint: "Times and triggers multiple contraption movements", parts: ["SE","QUEN","CER"] },
+  { word: "WINDMILL", hint: "Generates power from air using sails", parts: ["WIND","MI","LL"] },
+  { word: "BLASTFURNACE", hint: "Smelts ores at high speed when powered by heat", parts: ["BLAST","FUR","NACE"] },
+  { word: "SCHEMATIC", hint: "Blueprint used to replicate builds with the Printer", parts: ["SCHE","MA","TIC"] },
+  { word: "ROTATIONSPEED", hint: "Measured in RPM — affects machine output rate", parts: ["ROTA","TION","SPEED"] },
+  { word: "MECHANICAL", hint: "The adjective in almost every Create machine's name", parts: ["ME","CHAN","ICAL"] },
+  { word: "WATERWHEEL", hint: "Spins from flowing water to generate power", parts: ["WA","TER","WHEEL"] },
+  { word: "STRESSUNITS", hint: "The unit measuring power consumption (abbreviated SU)", parts: ["STRESS","UN","ITS"] },
+  { word: "GEARSHIFT", hint: "Reverses or adjusts rotation direction and speed", parts: ["GEAR","SHIFT"] },
+  { word: "FLUIDPIPE", hint: "Transports liquids between tanks and machines", parts: ["FLU","ID","PIPE"] },
+  { word: "MIXER", hint: "Combines ingredients for bulk crafting recipes", parts: ["MIX","ER"] },
+  { word: "CRUSHINGWHEEL", hint: "Pulverizes ores into a higher yield of resources", parts: ["CRUSH","ING","WHEEL"] },
+  { word: "BELTCONNECTOR", hint: "Links two belts together at an angle", parts: ["BELT","CON","NECTOR"] },
+  { word: "STATIONBLOCK", hint: "Marks a stop for trains on the rail network", parts: ["STA","TION","BLOCK"] },
+  { word: "TURNTABLE", hint: "Rotates contraptions or platforms in place", parts: ["TURN","TA","BLE"] },
+  { word: "PORTABLESTORAGE", hint: "An interface for moving items in/out of a contraption", parts: ["PORT","ABLE","STORAGE"] },
+  { word: "CLOCKWORK", hint: "Style of intricate gear-driven Create builds", parts: ["CLOCK","WORK"] },
+  { word: "PISTONEXTENSION", hint: "Extends mechanical pistons for moving builds", parts: ["PIS","TON","EXTENSION"] },
+  { word: "ANDESITEALLOY", hint: "An early-game crafting material made from iron and andesite", parts: ["ANDE","SITE","ALLOY"] },
+  { word: "BRASSCASING", hint: "A decorative and functional Create casing block", parts: ["BRASS","CA","SING"] },
+  { word: "MILLSTONE", hint: "Grinds raw materials when powered by rotation", parts: ["MILL","STONE"] },
+  { word: "STEAMENGINE", hint: "A power source fueled by heat and water in many add-ons", parts: ["STEAM","EN","GINE"] }
+];
+
+let WS_ROUNDS = [];
+const WS_LENGTH = 12;
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function pickRandomWSRounds() {
+  WS_ROUNDS = shuffleArray(ALL_WS_WORDS).slice(0, Math.min(WS_LENGTH, ALL_WS_WORDS.length));
+}
+
+let wsRound = 0;
+let wsScore = 0;
+let wsDropped = [];
+
+function switchGameTab(tab) {
+  document.getElementById('gtab-quiz').className = 'game-tab' + (tab === 'quiz' ? ' active' : '');
+  document.getElementById('gtab-wordsort').className = 'game-tab' + (tab === 'wordsort' ? ' active' : '');
+  document.getElementById('game-quiz').style.display = tab === 'quiz' ? '' : 'none';
+  document.getElementById('game-wordsort').style.display = tab === 'wordsort' ? '' : 'none';
+
+  if (tab === 'wordsort') {
+    const pass = quizComplete && score >= 6;
+    document.getElementById('wordsort-locked').style.display = pass ? 'none' : '';
+    document.getElementById('wordsort-game').style.display = pass ? '' : 'none';
+    if (pass && wsRound === 0 && WS_ROUNDS.length === 0) {
+      pickRandomWSRounds();
+      loadWSRound();
+    }
+  }
+}
+
+function loadWSRound() {
+  const r = WS_ROUNDS[wsRound];
+  wsDropped = [];
+  document.getElementById('ws-score').textContent = wsScore;
+  document.getElementById('ws-round').textContent = wsRound + 1;
+  const totalEl = document.getElementById('ws-total');
+  if (totalEl) totalEl.textContent = WS_ROUNDS.length;
+  document.getElementById('ws-target').textContent = '? ? ?';
+  document.getElementById('ws-hint').textContent = r.hint;
+  document.getElementById('ws-result').className = 'wordsort-result';
+  document.getElementById('ws-result').textContent = '';
+
+  const dropzone = document.getElementById('ws-dropzone');
+  dropzone.innerHTML = '';
+  dropzone.className = 'drop-zone empty';
+
+  const pool = document.getElementById('ws-pool');
+  const shuffled = shuffleArray(r.parts);
+  pool.innerHTML = shuffled.map((p, i) =>
+    `<div class="word-part" draggable="true" id="part-${i}" data-part="${p}"
+      ondragstart="dragStart(event)"
+      onclick="tapPart(this)"
+    >${p}</div>`
+  ).join('');
+
+  setupDropZone();
+}
+
+function dragStart(e) {
+  e.dataTransfer.setData('text/plain', e.target.id);
+}
+
+function setupDropZone() {
+  const dz = document.getElementById('ws-dropzone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const id = e.dataTransfer.getData('text/plain');
+    const el = document.getElementById(id);
+    if (el && !wsDropped.includes(id)) {
+      wsDropped.push(id);
+      const clone = el.cloneNode(true);
+      clone.classList.add('in-drop');
+      clone.removeAttribute('draggable');
+      clone.onclick = () => returnPart(id, clone);
+      dz.appendChild(clone);
+      el.style.opacity = '0.3';
+      el.style.pointerEvents = 'none';
+      dz.classList.remove('empty');
+    }
+  });
+}
+
+function tapPart(el) {
+  const id = el.id;
+  if (el.classList.contains('in-drop')) return;
+  if (wsDropped.includes(id)) return;
+  wsDropped.push(id);
+  const dz = document.getElementById('ws-dropzone');
+  const clone = el.cloneNode(true);
+  clone.classList.add('in-drop');
+  clone.removeAttribute('draggable');
+  clone.onclick = () => returnPart(id, clone);
+  dz.appendChild(clone);
+  el.style.opacity = '0.3';
+  el.style.pointerEvents = 'none';
+  dz.classList.remove('empty');
+}
+
+function returnPart(id, clone) {
+  wsDropped = wsDropped.filter(x => x !== id);
+  clone.remove();
+  const orig = document.getElementById(id);
+  if (orig) { orig.style.opacity = ''; orig.style.pointerEvents = ''; }
+  const dz = document.getElementById('ws-dropzone');
+  if (!dz.children.length) dz.classList.add('empty');
+}
+
+function clearDropZone() {
+  const dz = document.getElementById('ws-dropzone');
+  wsDropped.forEach(id => {
+    const orig = document.getElementById(id);
+    if (orig) { orig.style.opacity = ''; orig.style.pointerEvents = ''; }
+  });
+  wsDropped = [];
+  dz.innerHTML = '';
+  dz.className = 'drop-zone empty';
+  document.getElementById('ws-result').className = 'wordsort-result';
+}
+
+function checkWordSort() {
+  const r = WS_ROUNDS[wsRound];
+  const dz = document.getElementById('ws-dropzone');
+  const placed = Array.from(dz.querySelectorAll('.word-part')).map(el => el.getAttribute('data-part'));
+  const attempt = placed.join('');
+  const result = document.getElementById('ws-result');
+
+  if (attempt === r.word) {
+    document.getElementById('ws-target').textContent = r.word;
+    wsScore++;
+    result.className = 'wordsort-result correct show';
+    result.textContent = '✓ Correct! "' + r.word + '" is right.';
+    setTimeout(() => {
+      wsRound++;
+      if (wsRound >= WS_ROUNDS.length) {
+        showWSComplete();
+      } else {
+        loadWSRound();
+      }
+    }, 1600);
+  } else {
+    result.className = 'wordsort-result wrong show';
+    result.textContent = '✗ Not quite — check your order and try again!';
+  }
+}
+
+function showWSComplete() {
+  const box = document.getElementById('wordsort-game');
+  box.innerHTML = `
+    <div style="text-align:center;padding:2rem 0;">
+      <div style="font-size:3.5rem;margin-bottom:1rem;">🏆</div>
+      <div style="font-family:var(--font-display);font-size:2rem;color:var(--gold);margin-bottom:0.75rem;">${wsScore} / ${WS_ROUNDS.length}</div>
+      <p style="color:var(--mist);margin-bottom:2rem;">You've completed the CreatingSMP Word Sort challenge!<br>A true Create Mod master.</p>
+      <button class="btn-primary" onclick="restartWS()">Play Again</button>
+    </div>
+  `;
+}
+
+function restartWS() {
+  wsRound = 0; wsScore = 0; wsDropped = [];
+  pickRandomWSRounds();
+  const box = document.getElementById('wordsort-game');
+  box.className = 'wordsort-box';
+  box.innerHTML = `
+    <p class="wordsort-intro">Drag the word parts into the drop zone to spell the Create Mod term shown below. Order them correctly!</p>
+    <div class="wordsort-score-bar">
+      <span>Score: <span class="score-val" id="ws-score">0</span></span>
+      <span>Round <span id="ws-round">1</span> / <span id="ws-total">12</span></span>
+    </div>
+    <div class="target-display">
+      <div class="target-label">Build this word</div>
+      <div class="target-word" id="ws-target"></div>
+      <div class="target-hint" id="ws-hint"></div>
+    </div>
+    <div class="drop-zone empty" id="ws-dropzone"></div>
+    <div class="parts-pool" id="ws-pool"></div>
+    <div class="wordsort-actions">
+      <button class="btn-primary" onclick="checkWordSort()">✓ Check Answer</button>
+      <button class="btn-ghost" onclick="clearDropZone()">✕ Clear</button>
+    </div>
+    <div class="wordsort-result" id="ws-result"></div>
+  `;
+  loadWSRound();
+}
+</script>
+</body>
+</html>
