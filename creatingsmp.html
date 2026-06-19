@@ -175,6 +175,57 @@
 
   .hero-ctas { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
 
+  /* ── IP COPY WIDGET ── */
+  .ip-widget {
+    display: inline-flex; align-items: center; gap: 0;
+    background: var(--ash);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .ip-label {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--copper);
+    padding: 0 0.5rem 0 1.1rem;
+    white-space: nowrap;
+  }
+
+  .ip-value {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--steam);
+    padding: 0.85rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .ip-copy-btn {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: rgba(201,168,76,0.1);
+    border: none;
+    border-left: 1px solid rgba(201,168,76,0.2);
+    color: var(--brass);
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.85rem 1.1rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    white-space: nowrap;
+  }
+
+  .ip-copy-btn:hover { background: rgba(201,168,76,0.22); }
+
+  .ip-copy-btn.copied { background: rgba(74,124,89,0.25); color: #7ecb9a; }
+
+  .ip-copy-icon { font-size: 0.95rem; }
+
   .btn-primary {
     background: linear-gradient(135deg, var(--copper), var(--brass));
     color: var(--forge);
@@ -810,6 +861,10 @@
   @media (max-width: 500px) {
     .hero-ctas { flex-direction: column; align-items: center; }
     .btn-primary, .btn-ghost { width: 100%; text-align: center; }
+    .ip-widget { flex-direction: column; width: 100%; border-radius: 8px; }
+    .ip-label { padding: 0.6rem 0 0; }
+    .ip-value { padding: 0.2rem 0 0.6rem; }
+    .ip-copy-btn { width: 100%; justify-content: center; border-left: none; border-top: 1px solid rgba(201,168,76,0.2); }
   }
 
   /* ── FOOTER ── */
@@ -854,6 +909,13 @@
     <h1 class="fade-up delay-1">Creating<br>SMP</h1>
     <p class="hero-sub fade-up delay-2">Build. Automate. Discover.</p>
     <p class="hero-desc fade-up delay-3">A living world where machines run by steam and brass, contraptions defy gravity, and creativity has no ceiling. Powered by Create and a curated stack of add-ons.</p>
+    <div class="ip-widget fade-up delay-3">
+      <span class="ip-label">Server IP</span>
+      <span class="ip-value" id="server-ip">CreatingSMP.net</span>
+      <button class="ip-copy-btn" id="ip-copy-btn" onclick="copyServerIP()">
+        <span class="ip-copy-icon">⧉</span><span id="ip-copy-text">Copy</span>
+      </button>
+    </div>
     <div class="hero-ctas fade-up delay-4">
       <button class="btn-primary" onclick="showPage('game')">⚙ Play the Game</button>
       <button class="btn-ghost" onclick="showPage('about')">Meet the Founder</button>
@@ -1175,6 +1237,40 @@ function renderBiomes() {
 function toggleBiomeCat(i) {
   const el = document.getElementById('biome-cat-' + i);
   el.classList.toggle('open');
+}
+
+// ── COPY SERVER IP ──
+function copyServerIP() {
+  const ip = document.getElementById('server-ip').textContent;
+  const btn = document.getElementById('ip-copy-btn');
+  const txt = document.getElementById('ip-copy-text');
+
+  const showCopied = () => {
+    btn.classList.add('copied');
+    txt.textContent = 'Copied!';
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      txt.textContent = 'Copy';
+    }, 1500);
+  };
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ip).then(showCopied).catch(() => fallbackCopy(ip, showCopied));
+  } else {
+    fallbackCopy(ip, showCopied);
+  }
+}
+
+function fallbackCopy(text, cb) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+  cb();
 }
 
 // ── LITTLE EASTER EGG ──
